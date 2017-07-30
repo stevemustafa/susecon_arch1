@@ -1,6 +1,8 @@
 import random
 import string
 import redis
+import validators
+from Errors import Exceptions
 
 class Shortener(object):
     db = redis.Redis(decode_responses=True, host='localhost', port=6379)
@@ -22,6 +24,22 @@ class Shortener(object):
             key += random.choice(string.ascii_letters)
 
         return key
+
+    def get_value_from_key(self, key):
+        """ returns the registered URL for the provided key"""
+        return self.db.get(key)
+
+    def set_value(self, key, value):
+        """sets the key/value pair in the redis DB"""
+        if(self.confirm_url_validity(value)):
+            return self.db.set(key, value)
+        else:
+            raise Exceptions.UrlMalformedException()
+
+    def confirm_url_validity(self, url):
+        """helper function that confirms that a url is formed correctly"""
+        return validators.url(url)
+
 
 
 
